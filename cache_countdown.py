@@ -265,7 +265,6 @@ def main():
     print("Press Ctrl+C to stop.\n")
 
     known = set()
-    tick = 0
 
     def shutdown(*_):
         display.restore()
