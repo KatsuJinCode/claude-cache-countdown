@@ -190,9 +190,6 @@ echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"my-sessi
 # The ticker will pick it up within 1 second
 ```
 
-- **Slack/Discord status** (update your status with cache state)
-- **Home Assistant** (trigger automations when cache expires)
-
 ## Prompt caching reference
 
 | TTL | Write cost | Read cost | How to use |
