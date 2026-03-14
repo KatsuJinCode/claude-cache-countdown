@@ -286,6 +286,37 @@ def main():
 
     while True:
         sessions = read_cache_timers()
+
+        # Deduplicate by host_pid: keep only the most recent session per PID.
+        # When /clear or /reset creates a new session_id for the same tab,
+        # the old timer file lingers and causes flickering between states.
+        by_pid: dict[int, dict] = {}
+        stale: list[dict] = []
+        for s in sessions:
+            pid = s["host_pid"]
+            if pid <= 0:
+                # No PID tracking, keep all
+                by_pid.setdefault(id(s), s)
+                continue
+            if pid in by_pid:
+                existing = by_pid[pid]
+                if s["timestamp"] > existing["timestamp"]:
+                    stale.append(existing)
+                    by_pid[pid] = s
+                else:
+                    stale.append(s)
+            else:
+                by_pid[pid] = s
+
+        # Remove stale duplicate timer files
+        for s in stale:
+            try:
+                s["file"].unlink()
+            except OSError:
+                pass
+            known.discard(s["session_id"])
+
+        sessions = list(by_pid.values())
         sessions_data = []
 
         for s in sessions:

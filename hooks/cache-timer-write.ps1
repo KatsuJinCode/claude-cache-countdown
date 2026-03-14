@@ -43,6 +43,7 @@ $timerPath = Join-Path $stateDir "cache-timer-$sid.json"
     session_id = $sid
     project    = $project
     host_pid   = $hostPid
+    stopped    = $true
 } | ConvertTo-Json -Compress | Set-Content $timerPath -Force
 
 exit 0
