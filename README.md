@@ -4,7 +4,7 @@ Live prompt cache TTL countdown for [Claude Code](https://docs.anthropic.com/en/
 
 With Claude Opus 4.6's **1 million token context window**, prompt caching has never been more important. Anthropic caches your conversation context server-side for 5 minutes. Cache hits cost 90% less. But when your agent stops, that cache is silently draining, and the stakes are real:
 
-**At 900K tokens (a typical deep session with Opus 4.6):**
+**At 900K tokens (a long session pushing the context window):**
 - Cache hit: **$1.35**
 - Cache expired (re-write at 1.25x): **$16.88**
 - **Being one second late costs you $15.53.**
@@ -13,7 +13,7 @@ That's the difference between a cache read at 0.1x and a full cache write at 1.2
 
 This tool shows you exactly how much time you have left.
 
-As far as we can tell, **nothing else does this.** We searched extensively for existing tools, extensions, or projects that provide any kind of live cache state or TTL visibility for Claude Code (or any LLM CLI). The closest thing is an [empty GitHub repo](https://github.com/1amthis/cache-guard) that claimed the concept but never shipped code. Prompt caching is well-documented by Anthropic, but nobody has built tooling around cache *liveness* until now.
+As far as we can tell, **nothing else does this.** We searched extensively for existing tools, extensions, or projects that provide any kind of live cache state or TTL visibility for Claude Code (or any LLM CLI tool). Prompt caching is well-documented by Anthropic, but nobody has built tooling around cache *liveness* until now.
 
 ![Cache countdown in Windows Terminal tabs](img/Screenshot%202026-03-14%20035733.png)
 
