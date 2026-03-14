@@ -13,7 +13,7 @@ That's the difference between a cache read at 0.1x and a full cache write at 1.2
 
 This tool shows you exactly how much time you have left.
 
-As far as we can tell, **nothing else does this.** We searched extensively for existing tools, extensions, or projects that provide any kind of live cache state or TTL visibility for Claude Code (or any LLM CLI tool). Prompt caching is well-documented by Anthropic, but nobody has built tooling around cache *liveness* until now.
+We couldn't find anything else that does this. Prompt caching is well-documented by Anthropic, but as of March 2026 we're not aware of any tooling that provides live cache TTL visibility for Claude Code or other LLM CLI tools.
 
 ![Cache countdown in Windows Terminal tabs](img/Screenshot%202026-03-14%20035733.png)
 
