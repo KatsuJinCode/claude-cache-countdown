@@ -6,7 +6,7 @@ Anthropic's prompt caching stores your conversation context server-side for **5 
 
 This tool shows you exactly how much time you have left.
 
-![demo](https://img.shields.io/badge/status-works_on_my_machine-brightgreen)
+![Cache countdown in Windows Terminal tabs](img/Screenshot%202026-03-14%20035733.png)
 
 ## What it does
 
