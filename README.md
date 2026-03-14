@@ -20,25 +20,15 @@ As far as we can tell, **nothing else does this.** We searched extensively for e
 
 ## Quick Start
 
-### 1. Install the hooks
+### 1. Install the hook
+
+You only need the **Stop** hook. While the agent is working, every API call resets the cache, so the TTL is always full. The countdown only starts when the agent stops and the cache begins draining.
 
 Add to `~/.claude/settings.json`:
 
 ```json
 {
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /path/to/claude-cache-countdown/hooks/cache-timer-write.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "matcher": "",
