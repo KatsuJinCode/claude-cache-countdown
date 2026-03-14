@@ -187,8 +187,7 @@ class WindowsTerminalDisplay:
             pid = s.get("host_pid", 0)
             if pid <= 0:
                 continue
-            status_suffix = f" {s['status']}" if s["stopped"] else ""
-            title = f"{s['icon']} {s['countdown']} | {s['project']}{status_suffix}"
+            title = f"{s['icon']} {s['countdown']} | {s['project']}"
             updates.append((pid, title))
         self._set_titles(updates)
 
