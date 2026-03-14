@@ -247,8 +247,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Live prompt cache TTL countdown for Claude Code sessions"
     )
-    parser.add_argument("--ttl", type=int, default=300,
-                        help="Cache TTL in seconds (default: 300)")
+    parser.add_argument("--ttl", type=int, default=295,
+                        help="Cache TTL in seconds (default: 295, slightly under 5min for safety)")
     parser.add_argument("--interval", type=float, default=1.0,
                         help="Update interval in seconds (default: 1)")
     parser.add_argument("--once", action="store_true",
