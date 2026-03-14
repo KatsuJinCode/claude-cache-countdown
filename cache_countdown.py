@@ -118,10 +118,7 @@ def get_icon(remaining: float, ttl: float) -> str:
 def compute_remaining(session: dict, ttl: float) -> float:
     """Compute seconds remaining for a session."""
     now = datetime.now(timezone.utc)
-    if session["stopped"] and session["stopped_at"]:
-        ref = session["stopped_at"]
-    else:
-        ref = session["timestamp"]
+    ref = session["timestamp"]
     if ref.tzinfo is None:
         ref = ref.replace(tzinfo=timezone.utc)
     else:
