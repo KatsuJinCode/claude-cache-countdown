@@ -2,7 +2,14 @@
 
 Live prompt cache TTL countdown for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sessions.
 
-Anthropic's prompt caching stores your conversation context server-side for **5 minutes**. Cache hits cost 90% less and respond faster. But when your agent stops and you're thinking about what to do next, the cache is silently draining. If it expires, your next message pays full price.
+With Claude Opus 4.6's **1 million token context window**, prompt caching has never been more important. Anthropic caches your conversation context server-side for 5 minutes. Cache hits cost 90% less. But when your agent stops, that cache is silently draining, and the stakes are real:
+
+**At 900K tokens (a typical deep session with Opus 4.6):**
+- Cache hit: **$1.35**
+- Cache expired (re-write at 1.25x): **$16.88**
+- **Being one second late costs you $15.53.**
+
+That's the difference between a cache read at 0.1x and a full cache write at 1.25x. One second. And you had no way to see it coming.
 
 This tool shows you exactly how much time you have left.
 
