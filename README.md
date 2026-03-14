@@ -243,6 +243,8 @@ Opus 4.6 has a **pricing cliff at 200K tokens**. If your context exceeds 200K by
 
 Note the jump from 200K to 201K: crossing the threshold doubles the cost of the entire request, not just the overflow.
 
+These numbers reflect **input token costs only**, which is what prompt caching affects. Output tokens ($25-37.50/MTok) are billed the same regardless of cache state.
+
 - Cache reads are 90% cheaper than uncached input
 - Each API call that hits the cache resets the TTL timer
 - Cache hits improve latency (faster time-to-first-token)
