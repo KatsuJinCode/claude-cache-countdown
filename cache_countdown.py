@@ -125,7 +125,7 @@ def compute_remaining(session: dict, ttl: float) -> float:
 class StdoutDisplay:
     """Print countdown to stdout. Useful for piping into other tools."""
 
-    def update(self, sessions_data: list[dict], tick: int):
+    def update(self, sessions_data: list[dict]):
         lines = []
         for s in sessions_data:
             icon = s["icon"]
@@ -143,7 +143,7 @@ class StdoutDisplay:
 class AnsiTitleDisplay:
     """Set terminal title via ANSI OSC escape sequence. Works on most terminals."""
 
-    def update(self, sessions_data: list[dict], tick: int):
+    def update(self, sessions_data: list[dict]):
         if not sessions_data:
             return
         # Show the most urgent session in the title
@@ -160,7 +160,7 @@ class AnsiTitleDisplay:
 class TmuxDisplay:
     """Update tmux status-right with cache countdown."""
 
-    def update(self, sessions_data: list[dict], tick: int):
+    def update(self, sessions_data: list[dict]):
         if not sessions_data:
             os.system("tmux set-option -q status-right ''")
             return
@@ -181,7 +181,7 @@ class WindowsTerminalDisplay:
         import ctypes
         self._kernel32 = ctypes.windll.kernel32
 
-    def update(self, sessions_data: list[dict], tick: int):
+    def update(self, sessions_data: list[dict]):
         updates = []
         for s in sessions_data:
             pid = s.get("host_pid", 0)
