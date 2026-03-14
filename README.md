@@ -6,6 +6,8 @@ Anthropic's prompt caching stores your conversation context server-side for **5 
 
 This tool shows you exactly how much time you have left.
 
+As far as we can tell, **nothing else does this.** We searched extensively for existing tools, extensions, or projects that provide any kind of live cache state or TTL visibility for Claude Code (or any LLM CLI). The closest thing is an [empty GitHub repo](https://github.com/1amthis/cache-guard) that claimed the concept but never shipped code. Prompt caching is well-documented by Anthropic, but nobody has built tooling around cache *liveness* until now.
+
 ![Cache countdown in Windows Terminal tabs](img/Screenshot%202026-03-14%20035733.png)
 
 ## What it does
