@@ -137,13 +137,9 @@ class StdoutDisplay:
     def update(self, sessions_data: list[dict]):
         lines = []
         for s in sessions_data:
-            icon = s["icon"]
-            cd = s["countdown"]
-            proj = s["project"]
-            status = s["status"]
-            lines.append(f"{icon} {cd} | {proj}")
-        # Clear screen and print
-        print("\033[2J\033[H" + "\n".join(lines) if lines else "(no active sessions)", end="", flush=True)
+            lines.append(f"{s['icon']} {s['countdown']} | {s['project']}")
+        output = "\n".join(lines) if lines else "(no active sessions)"
+        print(f"\033[2J\033[H{output}", end="", flush=True)
 
     def restore(self):
         print("\033[2J\033[H", end="", flush=True)
