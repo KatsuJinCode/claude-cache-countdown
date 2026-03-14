@@ -135,7 +135,7 @@ The data contract is one JSON file per session at `~/.claude/state/cache-timer-{
 
 1. Poll (glob) for `cache-timer-*.json` files
 2. Parse the JSON
-3. Calculate: `remaining = TTL - (now - stopped_at if stopped else timestamp)`
+3. Calculate: `remaining = TTL - (now - timestamp)`
 4. Render however you want
 
 The `StdoutDisplay` class in `cache_countdown.py` is ~10 lines and shows the minimal implementation. The `--display stdout` flag outputs plain text you can pipe:
