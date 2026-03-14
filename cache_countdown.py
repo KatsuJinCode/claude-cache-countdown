@@ -132,7 +132,7 @@ class StdoutDisplay:
             cd = s["countdown"]
             proj = s["project"]
             status = s["status"]
-            lines.append(f"{icon} {cd} | {proj} {status}".strip())
+            lines.append(f"{icon} {cd} | {proj}")
         # Clear screen and print
         print("\033[2J\033[H" + "\n".join(lines) if lines else "(no active sessions)", end="", flush=True)
 
