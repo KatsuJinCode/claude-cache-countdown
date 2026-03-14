@@ -53,20 +53,11 @@ def read_cache_timers() -> list[dict]:
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
 
-            stopped_at = None
-            stopped_at_str = data.get("stopped_at", "")
-            if stopped_at_str:
-                stopped_at = datetime.fromisoformat(stopped_at_str)
-                if stopped_at.tzinfo is None:
-                    stopped_at = stopped_at.replace(tzinfo=timezone.utc)
-
             sessions.append({
                 "session_id": data.get("session_id", ""),
                 "project": data.get("project", "?"),
                 "host_pid": data.get("host_pid", 0),
                 "timestamp": ts,
-                "stopped": data.get("stopped", False),
-                "stopped_at": stopped_at,
                 "file": f,
             })
         except (json.JSONDecodeError, ValueError, OSError):
