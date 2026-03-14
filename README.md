@@ -80,41 +80,35 @@ That's it. The ticker auto-detects your platform and picks the right display.
 ## How it works
 
 ```
-Claude Code session
+Claude Code session is working...  (cache is always live, nothing to show)
     |
-    v
-PostToolUse hook fires -----> writes ~/.claude/state/cache-timer-{session_id}.json
-    |                              { "timestamp": "...", "project": "myapp",
-    |                                "host_pid": 12345, "stopped": false }
     v
 Agent stops
     |
     v
-Stop hook fires ------------> updates file: { "stopped": true, "stopped_at": "..." }
-    |
+Stop hook fires -----> writes ~/.claude/state/cache-timer-{session_id}.json
+    |                       { "timestamp": "...", "project": "myapp",
+    |                         "host_pid": 12345 }
     v
-cache_countdown.py ----------> reads timer files every second
-    |                          calculates remaining TTL
-    |                          updates display with countdown
+cache_countdown.py --> reads timer files every second
+    |                  calculates remaining TTL from timestamp
+    |                  updates your terminal with countdown
     v
-Tab title / tmux / stdout:  "🟢 4:32 | myapp"  -->  "🔴 0:45 | myapp ACT NOW"
+Tab title / tmux / stdout:  "🟢 4:32 | myapp"  -->  "🔴 0:45 | myapp"  -->  "❄️ COLD"
 ```
 
-### Key insight
+### Why only the Stop hook?
 
-During active work, the cache resets on every API call, so the countdown is informational. **The countdown only truly matters after the agent stops.** That's when the tool flashes alerts to grab your attention.
+While the agent is working, every API call resets the cache. The TTL is always full. There's nothing to count down. The countdown only starts when the agent stops and the cache begins draining. The appearance of the countdown IS the alert that your cache is at risk.
 
 ### Visual states
 
-| State | Display | Meaning |
-|-------|---------|---------|
-| `🟢 4:32 \| myapp` | Steady green | Cache is fresh, agent is working |
-| `🟡 2:15 \| myapp` | Steady yellow | Cache aging, agent still working |
-| `🔴 0:45 \| myapp` | Steady red | Cache low, agent still working |
-| `🟢/⏳ 4:32 \| myapp WAITING` | Flashing | Agent stopped, plenty of time |
-| `🟡/🔴 2:15 \| myapp WAITING` | Flashing | Agent stopped, act soon |
-| `🔴/⚠️ 0:45 \| myapp ACT NOW` | Flashing | Agent stopped, cache about to expire |
-| `❄️ COLD \| myapp` | Steady | Cache expired |
+| Display | Meaning |
+|---------|---------|
+| `🟢 4:32 \| myapp` | Cache is fresh, you have time |
+| `🟡 2:15 \| myapp` | Cache aging, don't wait too long |
+| `🔴 0:45 \| myapp` | Cache about to expire, act now |
+| `❄️ COLD \| myapp` | Cache expired |
 
 ## Timer file format
 
