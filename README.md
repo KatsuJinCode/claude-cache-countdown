@@ -167,9 +167,7 @@ python cache_countdown.py --display stdout --interval 1 | your-tool
 
 If you use a different shell or want to integrate with an existing hook system, the hook just needs to write a JSON file on two events:
 
-**On any tool use (PostToolUse):** Write the file with `stopped: false` and the current timestamp. This tells the ticker "the session is alive, cache was just refreshed."
-
-**On session stop (Stop):** Update the file with `stopped: true` and `stopped_at` set to now. This is the critical event that starts the real countdown.
+**On session stop (Stop):** Write the timer file with `timestamp` set to now. That's it. The ticker picks it up and starts counting down.
 
 The `host_pid` field is optional but enables the Windows Terminal display backend. It should be the PID of the process that owns the terminal tab (the direct child of your terminal emulator in the process tree). If you set it to `0`, the `ansi`, `tmux`, and `stdout` backends still work fine.
 
@@ -178,8 +176,8 @@ The `host_pid` field is optional but enables the Windows Terminal display backen
 If you don't want to install hooks, you can create the timer files yourself from any script:
 
 ```bash
-# Mark a session as stopped (start the countdown)
-echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"my-session","project":"myapp","host_pid":0,"stopped":true,"stopped_at":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"}' > ~/.claude/state/cache-timer-my-session.json
+# Start a countdown (e.g., when you notice your agent has stopped)
+echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"my-session","project":"myapp","host_pid":0}' > ~/.claude/state/cache-timer-my-session.json
 
 # The ticker will pick it up within 1 second
 ```

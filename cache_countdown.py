@@ -103,40 +103,16 @@ def format_countdown(remaining: float) -> str:
     return f"{mins}:{secs:02d}"
 
 
-def get_status(remaining: float, ttl: float, stopped: bool) -> str:
-    """Get a status label for the current cache state."""
+def get_icon(remaining: float, ttl: float) -> str:
+    """Get status icon based on remaining time."""
     if remaining <= 0:
-        return "EXPIRED" if stopped else "COLD"
-    if not stopped:
-        return "active"
+        return "\u2744"  # snowflake - cache cold
     ratio = remaining / ttl
-    if ratio > 0.2:
-        return "WAITING"
-    return "ACT NOW"
-
-
-def get_icon(remaining: float, ttl: float, stopped: bool, tick: int) -> str:
-    """Get status icon. Flashes on alternate ticks when stopped."""
-    if remaining <= 0:
-        if stopped:
-            return "\u26a0\ufe0f" if tick % 2 == 0 else "\u2744"
-        return "\u2744"  # snowflake
-
-    ratio = remaining / ttl
-
-    if not stopped:
-        if ratio > 0.5:
-            return "\U0001f7e2"  # green
-        elif ratio > 0.2:
-            return "\U0001f7e1"  # yellow
-        return "\U0001f534"  # red
-
-    # Stopped: flash to grab attention
     if ratio > 0.5:
-        return "\U0001f7e2" if tick % 2 == 0 else "\u23f3"
+        return "\U0001f7e2"  # green
     elif ratio > 0.2:
-        return "\U0001f7e1" if tick % 2 == 0 else "\U0001f534"
-    return "\U0001f534" if tick % 2 == 0 else "\u26a0\ufe0f"
+        return "\U0001f7e1"  # yellow
+    return "\U0001f534"  # red
 
 
 def compute_remaining(session: dict, ttl: float) -> float:
