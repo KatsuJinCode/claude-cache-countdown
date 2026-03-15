@@ -207,6 +207,43 @@ test("config has alerts key", "alerts" in _cfg)
 test("config has 2 default alerts", len(_cfg["alerts"]) == 2)
 _cfg_path.unlink()
 test("load_config returns {} for missing file", cache_countdown.load_config(Path("/nonexistent/path.json")) == {})
+test("config includes context field", "context" in _cfg)
+test("config includes cold_ttl field", "cold_ttl" in _cfg)
+
+print("\n=== estimate_cost ===")
+# Standard tier (<=200K): cache_read=0.50/MTok, cache_write=6.25/MTok
+# delta = (6.25 - 0.50) * tokens/1M = 5.75 * tokens/1M
+test("100K standard tier", cache_countdown.estimate_cost(100) == "$0.58")
+test("200K standard tier", cache_countdown.estimate_cost(200) == "$1.15")
+# Premium tier (>200K): cache_read=1.00/MTok, cache_write=12.50/MTok
+# delta = (12.50 - 1.00) * tokens/1M = 11.50 * tokens/1M
+test("500K premium tier", cache_countdown.estimate_cost(500) == "$5.75")
+test("900K premium tier", cache_countdown.estimate_cost(900) == "$10.35")
+test("1M premium tier", cache_countdown.estimate_cost(1000) == "$11.50")
+
+print("\n=== stale COLD cleanup ===")
+for f in TEST_DIR.glob("cache-timer-*.json"):
+    f.unlink()
+
+# A session that went COLD 15 minutes ago (remaining = 295 - 1200 = -905)
+write_timer("stale-sess", seconds_ago=1200, stopped=True)
+sessions = cache_countdown.read_cache_timers()
+stale = [s for s in sessions if s["session_id"] == "stale-sess"][0]
+remaining = cache_countdown.compute_remaining(stale, 295)
+test("stale session has very negative remaining", remaining < -600)
+# With cold_ttl=600, this session (remaining ~ -905) should be cleaned up
+test("stale session file exists before cleanup", (TEST_DIR / "cache-timer-stale-sess.json").exists())
+
+# A fresh COLD session (just expired, remaining ~ -5)
+write_timer("fresh-cold", seconds_ago=300, stopped=True)
+
+print("\n=== _format_session_line ===")
+test("basic format", cache_countdown._format_session_line(
+    {"icon": "X", "countdown": "1:00", "project": "app"}) == "X 1:00 | app")
+test("format with cost", cache_countdown._format_session_line(
+    {"icon": "X", "countdown": "1:00", "project": "app", "cost": "$5.75"}) == "X 1:00 | app ($5.75)")
+test("format without cost key", cache_countdown._format_session_line(
+    {"icon": "X", "countdown": "HOT", "project": "app"}) == "X HOT | app")
 
 # --- Cleanup ---
 shutil.rmtree(TEST_DIR, ignore_errors=True)
