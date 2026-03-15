@@ -224,7 +224,7 @@ def _cwd_to_project_slug(cwd: str) -> str:
     where slug is the cwd with separators replaced by dashes and colon removed.
     e.g. C:\\Users\\jpswi\\projects\\myapp -> C--Users-jpswi-projects-myapp
     """
-    slug = cwd.replace("\\", "-").replace("/", "-").replace(":", "").lstrip("-")
+    slug = cwd.replace("\\", "-").replace("/", "-").replace(":", "-").lstrip("-")
     return slug
 
 
