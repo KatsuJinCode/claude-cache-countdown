@@ -128,11 +128,13 @@ While the agent is working, every API call resets the cache. The TTL is always f
 
 | Display | Meaning |
 |---------|---------|
-| `🔥 HOT \| myapp` | Agent is working, cache is always fresh |
-| `🟢 4:32 \| myapp` | Agent stopped, cache is fresh, you have time |
-| `🟡 2:15 \| myapp` | Agent stopped, cache aging, don't wait too long |
-| `🔴 0:45 \| myapp` | Agent stopped, cache about to expire, act now |
-| `❄️ COLD \| myapp` | Cache expired |
+| `🔥 HOT myapp` | Agent is working, cache is always fresh |
+| `🟢 4:32 $1.15 myapp` | Agent stopped, cache is fresh, you have time |
+| `🟡 2:15 $1.15 myapp` | Agent stopped, cache aging, don't wait too long |
+| `🔴 0:45 $1.15 myapp` | Agent stopped, cache about to expire, act now |
+| `❄️ COLD myapp` | Cache expired |
+
+Cost appears between countdown and project name when context data is available.
 
 ## Display backends
 
