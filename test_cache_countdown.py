@@ -261,7 +261,13 @@ test("0 tokens returns empty", cache_countdown.estimate_cost(0) == "")
 test("exceeds_200k flag forces premium", cache_countdown.estimate_cost(100_000, exceeds_200k=True) == "$1.15")
 
 print("\n=== read_session_context ===")
-# Write a fake statusline data file
+# Tier 0: context_tokens embedded in timer data
+_timer_with_ctx = {"context_tokens": 300000, "exceeds_200k": True}
+_ctx_tokens, _ctx_exceeds = cache_countdown.read_session_context("no-such-id", _timer_with_ctx)
+test("tier 0: reads from timer data", _ctx_tokens == 300000)
+test("tier 0: reads exceeds flag", _ctx_exceeds is True)
+
+# Tier 1: statusline data file
 _sl_path = TEST_DIR / "statusline-data-ctx-test.json"
 _sl_data = {
     "session_id": "ctx-test",
@@ -276,14 +282,14 @@ _sl_data = {
 }
 _sl_path.write_text(json.dumps(_sl_data), encoding="utf-8")
 _ctx_tokens, _ctx_exceeds = cache_countdown.read_session_context("ctx-test")
-test("reads context tokens from statusline data", _ctx_tokens == 150005)
-test("reads exceeds_200k flag", _ctx_exceeds is False)
+test("tier 1: reads from statusline data", _ctx_tokens == 150005)
+test("tier 1: reads exceeds_200k flag", _ctx_exceeds is False)
 _sl_path.unlink()
 
-# Missing file returns (0, False)
+# Graceful fallback: no data at all
 _ctx_tokens2, _ctx_exceeds2 = cache_countdown.read_session_context("nonexistent-session")
-test("missing statusline returns 0", _ctx_tokens2 == 0)
-test("missing statusline returns False", _ctx_exceeds2 is False)
+test("fallback: returns 0", _ctx_tokens2 == 0)
+test("fallback: returns False", _ctx_exceeds2 is False)
 
 print("\n=== stale COLD cleanup ===")
 for f in TEST_DIR.glob("cache-timer-*.json"):
