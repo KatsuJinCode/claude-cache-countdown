@@ -296,22 +296,25 @@ python cache_countdown.py --once --display stdout
 
 Two actions:
 
-1. **On session stop:** Create `~/.claude/state/cache-timer-{session_id}.json` with `timestamp` set to now.
-2. **On user prompt:** Delete the timer file.
+1. **On session stop:** Write `~/.claude/state/cache-timer-{session_id}.json` with `stopped` set to `true` and `timestamp` set to now.
+2. **On user prompt:** Update the same file with `stopped` set to `false` and `timestamp` set to now.
 
-The `host_pid` field is optional. It enables the Windows Terminal display backend (needs the PID of the terminal tab's direct child process). Set it to `0` if you don't need Windows Terminal tab titles.
+Optional fields:
+- `host_pid`: enables Windows Terminal tab title display. Set to `0` if not needed.
+- `cwd`: the session's working directory. Enables cost display via transcript parsing.
 
 ### Using without hooks
 
-You can create and delete timer files yourself from any script:
+You can create and update timer files yourself from any script:
 
 ```bash
-# Start a countdown
-echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"manual","project":"myapp","host_pid":0}' \
+# Start a countdown (agent stopped, cache draining)
+echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"manual","project":"myapp","host_pid":0,"stopped":true,"cwd":"'$PWD'"}' \
   > ~/.claude/state/cache-timer-manual.json
 
-# Clear it
-rm ~/.claude/state/cache-timer-manual.json
+# Mark as active (agent working, cache refreshing)
+echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"manual","project":"myapp","host_pid":0,"stopped":false,"cwd":"'$PWD'"}' \
+  > ~/.claude/state/cache-timer-manual.json
 ```
 
 ## Prompt caching reference
