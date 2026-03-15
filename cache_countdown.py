@@ -735,7 +735,7 @@ def main():
                 "countdown": countdown,
                 "icon": icon,
             }
-            ctx_tokens, exceeds_200k = read_session_context(sid)
+            ctx_tokens, exceeds_200k = read_session_context(sid, s)
             cost = estimate_cost(ctx_tokens, exceeds_200k)
             if cost:
                 entry["cost"] = cost
