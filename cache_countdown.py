@@ -358,13 +358,35 @@ class AlertManager:
 # Display backends
 # ---------------------------------------------------------------------------
 
+# ASCII fallback icons for terminals that can't render emoji
+_ICON_FALLBACKS = {
+    "\U0001f7e2": "[OK]",    # green circle
+    "\U0001f7e1": "[!!]",    # yellow circle
+    "\U0001f534": "[!!]",    # red circle
+    "\u2744": "[--]",        # snowflake
+    "\U0001f525": "[**]",    # fire
+    "\u2753": "[??]",        # question mark
+}
+
+
+def _safe_encode(text: str) -> str:
+    """Replace emoji with ASCII fallbacks if the terminal can't encode them."""
+    try:
+        text.encode(sys.stdout.encoding or "utf-8")
+        return text
+    except (UnicodeEncodeError, LookupError):
+        for emoji, fallback in _ICON_FALLBACKS.items():
+            text = text.replace(emoji, fallback)
+        return text
+
+
 def _format_session_line(s: dict) -> str:
     """Format a session entry for display, including cost if present."""
     line = f"{s['icon']} {s['countdown']} | {s['project']}"
     cost = s.get("cost")
     if cost:
         line += f" ({cost})"
-    return line
+    return _safe_encode(line)
 
 
 class StdoutDisplay:
