@@ -313,7 +313,30 @@ class AlertManager:
 
         for a in self._alerts:
             trigger = a["at"]
-            # Build a unique key for this alert rule
+            atype = a.get("type", "bell")
+
+            # Countdown type: bell every second from trigger down to 0
+            if atype == "countdown":
+                if not isinstance(trigger, (int, float)) or remaining > trigger or remaining <= 0:
+                    continue
+                # Bell for each whole second we haven't belled yet
+                current_sec = int(remaining)
+                key = f"countdown:{current_sec}"
+                if key in fired:
+                    continue
+                fired.add(key)
+                bell(1)
+                # Print first time only
+                start_key = f"countdown_started:{trigger}"
+                if start_key not in fired:
+                    fired.add(start_key)
+                    try:
+                        print(f"  \U000023f0 {project}: final countdown!")
+                    except UnicodeEncodeError:
+                        print(f"  [!!!] {project}: final countdown!")
+                continue
+
+            # Standard one-shot alerts (bell, sound)
             key = f"{trigger}"
 
             if key in fired:
@@ -330,7 +353,6 @@ class AlertManager:
                 continue
 
             fired.add(key)
-            atype = a.get("type", "bell")
             label = a.get("label", "")
 
             # Fire the alert
