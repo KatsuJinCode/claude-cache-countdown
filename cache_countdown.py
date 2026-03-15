@@ -130,6 +130,110 @@ def compute_remaining(session: dict, ttl: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+# Alert system
+# ---------------------------------------------------------------------------
+
+def bell(count=1, spacing=0.15):
+    """Send terminal bell character(s)."""
+    for i in range(count):
+        sys.stdout.write("\a")
+        sys.stdout.flush()
+        if i < count - 1:
+            time.sleep(spacing)
+
+
+def play_sound(path: str):
+    """Play a sound file in the background (non-blocking). Cross-platform."""
+    if not os.path.isfile(path):
+        return
+    try:
+        if platform.system() == "Windows":
+            # Use PowerShell's SoundPlayer for .wav, or mpv/ffplay as fallback
+            if path.lower().endswith(".wav"):
+                subprocess.Popen(
+                    ["powershell", "-NoProfile", "-Command",
+                     f'(New-Object Media.SoundPlayer "{path}").PlaySync()'],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+            else:
+                # Try mpv, then ffplay for non-wav formats
+                for player in ["mpv --no-video --really-quiet", "ffplay -nodisp -autoexit -loglevel quiet"]:
+                    cmd = player.split() + [path]
+                    try:
+                        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        return
+                    except FileNotFoundError:
+                        continue
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["afplay", path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            # Linux: try paplay, then aplay, then ffplay
+            for player in ["paplay", "aplay", "ffplay -nodisp -autoexit -loglevel quiet"]:
+                cmd = player.split() + [path]
+                try:
+                    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    return
+                except FileNotFoundError:
+                    continue
+    except OSError:
+        pass
+
+
+class AlertManager:
+    """Tracks per-session alert state and fires alerts at thresholds."""
+
+    def __init__(self, alert_sound=None, urgent_sound=None, quiet=False):
+        # Per-session tracking: session_id -> set of fired alert names
+        self._fired: dict[str, set[str]] = {}
+        self._alert_sound = alert_sound   # sound file for stop alert
+        self._urgent_sound = urgent_sound  # sound file for urgent (1min) alert
+        self._quiet = quiet
+
+    def reset(self, session_id: str):
+        """Reset alerts for a session (e.g., when it becomes active again)."""
+        self._fired.pop(session_id, None)
+
+    def check(self, session_id: str, project: str, stopped: bool,
+              remaining: float, was_known: bool):
+        """Check alert conditions and fire if needed.
+
+        Args:
+            session_id: Session identifier
+            project: Project name for log messages
+            stopped: Whether the session is stopped (cache draining)
+            remaining: Seconds remaining on cache
+            was_known: Whether this session was already being tracked
+        """
+        if self._quiet:
+            return
+
+        if stopped is not True:
+            # Session is active or unknown, reset alert state
+            self.reset(session_id)
+            return
+
+        fired = self._fired.setdefault(session_id, set())
+
+        # Alert 1: session just stopped (minimal - single bell)
+        if "stop" not in fired:
+            fired.add("stop")
+            if self._alert_sound:
+                threading.Thread(target=play_sound, args=(self._alert_sound,), daemon=True).start()
+            else:
+                bell(1)
+            print(f"  \U0001f514 {project}: cache is draining")
+
+        # Alert 2: ~1 minute remaining (urgent - triple bell or sound)
+        if "urgent" not in fired and remaining <= 60:
+            fired.add("urgent")
+            if self._urgent_sound:
+                threading.Thread(target=play_sound, args=(self._urgent_sound,), daemon=True).start()
+            else:
+                bell(3, spacing=0.2)
+            print(f"  \U0001f6a8 {project}: ~{int(remaining)}s remaining!")
+
+
+# ---------------------------------------------------------------------------
 # Display backends
 # ---------------------------------------------------------------------------
 
