@@ -224,7 +224,14 @@ def _cwd_to_project_slug(cwd: str) -> str:
     where slug is the cwd with separators replaced by dashes and colon removed.
     e.g. C:\\Users\\jpswi\\projects\\myapp -> C--Users-jpswi-projects-myapp
     """
-    slug = cwd.replace("\\", "-").replace("/", "-").replace(":", "-").replace(" ", "-").lstrip("-")
+    slug = cwd.replace("\\", "-").replace("/", "-").replace(":", "-").replace(" ", "-")
+    # Windows paths start with drive letter (C-...), strip leading dash only for those.
+    # WSL paths (/mnt/c/...) produce slugs starting with dash (-mnt-c-...) which must be preserved.
+    if len(slug) > 1 and slug[0] == "-" and slug[1].isalpha():
+        # Could be either -mnt-... (WSL, keep dash) or -C-... (shouldn't happen)
+        # Only strip if it looks like a bare drive letter: single char then dash
+        pass
+    # Don't strip. Claude Code preserves leading dashes in slugs.
     return slug
 
 
