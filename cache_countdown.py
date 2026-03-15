@@ -599,8 +599,6 @@ def main():
                         help=f"Path to config file (default: {CONFIG_PATH})")
     parser.add_argument("--init-config", action="store_true",
                         help="Generate a starter config file and exit")
-    parser.add_argument("--context", type=int, default=0,
-                        help="Estimated context size in K tokens (e.g. 500 for 500K). Shows cost at risk.")
     parser.add_argument("--cold-ttl", type=int, default=600,
                         help="Seconds to keep showing COLD sessions before hiding (default: 600 = 10min)")
     args = parser.parse_args()
