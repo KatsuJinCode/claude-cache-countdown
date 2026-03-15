@@ -810,6 +810,7 @@ def main():
         for s in sessions_data:
             if s["remaining"] < -cold_ttl:
                 known.discard(s["session_id"])
+                cost_cache.pop(s["session_id"], None)
                 # Find and remove the timer file
                 timer_file = STATE_DIR / f"cache-timer-{s['session_id']}.json"
                 try:
