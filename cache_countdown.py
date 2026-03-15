@@ -141,6 +141,8 @@ def read_cache_timers() -> list[dict]:
                 "timestamp": ts,
                 "stopped": stopped,
                 "file": f,
+                "context_tokens": data.get("context_tokens", 0),
+                "exceeds_200k": data.get("exceeds_200k", False),
             })
         except (json.JSONDecodeError, ValueError, OSError):
             continue
