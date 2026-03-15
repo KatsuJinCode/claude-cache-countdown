@@ -151,15 +151,20 @@ When the ticker starts, it shows what alerts are configured:
 ```
 Cache Countdown started (TTL=295s, display=auto)
 Watching: ~/.claude/state/cache-timer-*.json
+Cost: auto-detected from statusline data or transcript on stop
 Alerts:
   1x bell on agent stop (cache draining)
   3x bell at 60s remaining (~1 min left)
+  5x bell at 30s remaining (30 seconds)
+  bell every second at 10s remaining
   (defaults; run --init-config to customize)
 ```
 
-Default alerts:
-- **On agent stop**: single terminal bell, letting you know the cache is now draining
-- **At ~1 minute remaining**: triple bell, urgent warning
+Default alerts (escalating urgency):
+- **On agent stop**: single bell, cache is draining
+- **At 1 minute**: triple bell
+- **At 30 seconds**: 5x bell
+- **Final 10 seconds**: bell every second (countdown)
 
 Use `--quiet` to disable alerts. The ticker will tell you how to re-enable them.
 
