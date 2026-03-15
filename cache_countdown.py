@@ -763,10 +763,16 @@ def main():
                 "countdown": countdown,
                 "icon": icon,
             }
-            ctx_tokens, exceeds_200k = read_session_context(sid)
-            cost = estimate_cost(ctx_tokens, exceeds_200k)
-            if cost:
-                entry["cost"] = cost
+            # Cost: compute once when session first stops, cache the result
+            if stopped is True:
+                if sid not in cost_cache:
+                    ctx_tokens, exceeds_200k = read_session_context(sid)
+                    cost_cache[sid] = estimate_cost(ctx_tokens, exceeds_200k)
+                if cost_cache.get(sid):
+                    entry["cost"] = cost_cache[sid]
+            else:
+                # Session active again, clear cached cost
+                cost_cache.pop(sid, None)
             sessions_data.append(entry)
 
             if not was_known:
