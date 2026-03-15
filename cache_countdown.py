@@ -217,42 +217,71 @@ def estimate_cost(context_tokens: int, exceeds_200k: bool = False) -> str:
     return f"${delta:.2f}"
 
 
-def _parse_transcript_tokens(session_id: str) -> tuple[int, bool]:
-    """Parse the last few lines of a session transcript for token usage.
+def _cwd_to_project_slug(cwd: str) -> str:
+    """Convert a cwd path to the Claude projects directory slug.
 
-    Scans ~/.claude/projects/*/session_id.jsonl for the last entry
-    containing cache_read_input_tokens.
+    Claude Code stores transcripts at ~/.claude/projects/{slug}/{session}.jsonl
+    where slug is the cwd with separators replaced by dashes and colon removed.
+    e.g. C:\\Users\\jpswi\\projects\\myapp -> C--Users-jpswi-projects-myapp
+    """
+    slug = cwd.replace("\\", "-").replace("/", "-").replace(":", "").lstrip("-")
+    return slug
+
+
+def _read_last_lines(filepath: Path, max_lines: int = 20):
+    """Yield lines from the end of a file, one at a time, up to max_lines."""
+    try:
+        with open(filepath, "rb") as f:
+            f.seek(0, 2)
+            pos = f.tell()
+            lines_found = 0
+            buf = b""
+            while pos > 0 and lines_found < max_lines:
+                read_size = min(pos, 4096)
+                pos -= read_size
+                f.seek(pos)
+                buf = f.read(read_size) + buf
+                while b"\n" in buf and lines_found < max_lines:
+                    buf, _, line = buf.rpartition(b"\n")
+                    if line.strip():
+                        lines_found += 1
+                        yield line.decode("utf-8", errors="replace")
+            # Last remaining chunk (first line of file)
+            if buf.strip() and lines_found < max_lines:
+                yield buf.decode("utf-8", errors="replace")
+    except OSError:
+        return
+
+
+def _parse_transcript_tokens(session_id: str, cwd: str) -> tuple[int, bool]:
+    """Parse the transcript for token usage, reading from the end.
+
+    Derives the exact transcript path from cwd + session_id.
+    Reads one line at a time from the end until it finds cache token data.
 
     Returns (total_input_tokens, exceeds_200k).
     """
-    projects_dir = Path.home() / ".claude" / "projects"
-    if not projects_dir.is_dir():
+    if not cwd:
         return 0, False
-    # The transcript could be in any project slug dir
-    for transcript in projects_dir.glob(f"*/{session_id}.jsonl"):
+    slug = _cwd_to_project_slug(cwd)
+    transcript = Path.home() / ".claude" / "projects" / slug / f"{session_id}.jsonl"
+    if not transcript.is_file():
+        return 0, False
+
+    for line in _read_last_lines(transcript):
+        if "cache_read_input_tokens" not in line:
+            continue
         try:
-            # Read from the end, line by line, until we find token usage
-            with open(transcript, "rb") as f:
-                f.seek(0, 2)  # seek to end
-                size = f.tell()
-                # Read last 32KB (enough for several entries)
-                chunk_size = min(size, 32768)
-                f.seek(size - chunk_size)
-                chunk = f.read().decode("utf-8", errors="replace")
-            lines = chunk.splitlines()
-            for line in reversed(lines):
-                if "cache_read_input_tokens" not in line:
-                    continue
-                entry = json.loads(line)
-                usage = entry.get("message", {}).get("usage")
-                if not usage:
-                    continue
-                total = (usage.get("input_tokens", 0)
-                         + usage.get("cache_creation_input_tokens", 0)
-                         + usage.get("cache_read_input_tokens", 0))
-                exceeds = total > 200_000
-                return total, exceeds
-        except (json.JSONDecodeError, OSError, TypeError):
+            entry = json.loads(line)
+            usage = entry.get("message", {}).get("usage")
+            if not usage:
+                continue
+            total = (usage.get("input_tokens", 0)
+                     + usage.get("cache_creation_input_tokens", 0)
+                     + usage.get("cache_read_input_tokens", 0))
+            exceeds = total > 200_000
+            return total, exceeds
+        except (json.JSONDecodeError, TypeError):
             continue
     return 0, False
 
