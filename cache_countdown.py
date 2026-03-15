@@ -47,6 +47,8 @@ CONFIG_PATH = Path.home() / ".claude" / "cache-countdown.json"
 DEFAULT_ALERTS = [
     {"at": "stop", "type": "bell", "count": 1, "label": "cache draining"},
     {"at": 60,     "type": "bell", "count": 3, "label": "~1 min left"},
+    {"at": 30,     "type": "bell", "count": 5, "label": "30 seconds"},
+    {"at": 10,     "type": "countdown"},
 ]
 
 
