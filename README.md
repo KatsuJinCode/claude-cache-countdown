@@ -126,7 +126,7 @@ While the agent is working, every API call resets the cache. The TTL is always f
 
 | Display | Meaning |
 |---------|---------|
-| (nothing) | Agent is working, cache is always fresh |
+| `🔥 HOT \| myapp` | Agent is working, cache is always fresh |
 | `🟢 4:32 \| myapp` | Agent stopped, cache is fresh, you have time |
 | `🟡 2:15 \| myapp` | Agent stopped, cache aging, don't wait too long |
 | `🔴 0:45 \| myapp` | Agent stopped, cache about to expire, act now |
