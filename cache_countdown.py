@@ -467,23 +467,39 @@ def main():
     parser.add_argument("--display", default="auto",
                         choices=["auto", "stdout", "ansi", "tmux", "windows"],
                         help="Display backend (default: auto-detect)")
-    parser.add_argument("--alert-sound", default=None,
-                        help="Sound file to play when agent stops (default: terminal bell)")
-    parser.add_argument("--urgent-sound", default=None,
-                        help="Sound file for urgent alert at ~1min remaining (default: triple bell)")
     parser.add_argument("--quiet", action="store_true",
                         help="Disable all audible alerts")
+    parser.add_argument("--config", default=None,
+                        help=f"Path to config file (default: {CONFIG_PATH})")
+    parser.add_argument("--init-config", action="store_true",
+                        help="Generate a starter config file and exit")
     args = parser.parse_args()
 
+    config_path = Path(args.config) if args.config else CONFIG_PATH
+
+    if args.init_config:
+        init_config(config_path)
+        sys.exit(0)
+
+    # Load config file if present
+    config = load_config(config_path)
+    alert_config = config.get("alerts", DEFAULT_ALERTS)
+
     display = get_display(args.display)
-    alerts = AlertManager(
-        alert_sound=args.alert_sound,
-        urgent_sound=args.urgent_sound,
-        quiet=args.quiet,
-    )
+    alerts = AlertManager(alerts=alert_config, quiet=args.quiet)
 
     print(f"Cache Countdown started (TTL={args.ttl}s, display={args.display})")
     print(f"Watching: {STATE_DIR / 'cache-timer-*.json'}")
+    if args.quiet:
+        print("Alerts: disabled (--quiet). Run without --quiet to enable.")
+    else:
+        print("Alerts:")
+        for line in alerts.describe():
+            print(line)
+        if config_path.is_file():
+            print(f"  (config: {config_path})")
+        else:
+            print(f"  (defaults; run --init-config to customize)")
     print("Press Ctrl+C to stop.\n")
 
     known = set()
