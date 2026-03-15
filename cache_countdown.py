@@ -24,6 +24,7 @@ Usage:
     python cache_countdown.py --quiet                          # no audible alerts
     python cache_countdown.py --config alerts.json             # custom config file
     python cache_countdown.py --init-config                    # generate starter config
+    python cache_countdown.py --cold-ttl 300                   # hide COLD after 5min
 """
 import json
 import os
