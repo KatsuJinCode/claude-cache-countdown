@@ -176,30 +176,22 @@ Generate a config file:
 python cache_countdown.py --init-config
 ```
 
-This creates `~/.claude/cache-countdown.json`:
+This creates `~/.claude/cache-countdown.json` with the defaults:
 
 ```json
 {
   "alerts": [
-    {
-      "at": "stop",
-      "type": "bell",
-      "count": 1,
-      "label": "cache draining"
-    },
-    {
-      "at": 60,
-      "type": "bell",
-      "count": 3,
-      "label": "~1 min left"
-    }
+    {"at": "stop", "type": "bell", "count": 1, "label": "cache draining"},
+    {"at": 60, "type": "bell", "count": 3, "label": "~1 min left"},
+    {"at": 30, "type": "bell", "count": 5, "label": "30 seconds"},
+    {"at": 10, "type": "countdown"}
   ]
 }
 ```
 
 Each alert has:
 - `at`: when to fire. `"stop"` for when the agent stops, or a number (seconds remaining)
-- `type`: `"bell"` (terminal bell) or `"sound"` (play a file)
+- `type`: `"bell"` (terminal bell), `"sound"` (play a file), or `"countdown"` (bell every second from this point)
 - `count`: how many bells (for `"bell"` type)
 - `sound`: path to a sound file (for `"sound"` type)
 - `label`: text shown in the terminal when the alert fires
