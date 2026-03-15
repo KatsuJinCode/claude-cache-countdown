@@ -223,6 +223,8 @@ Sound playback is cross-platform: Windows (SoundPlayer/.wav, mpv/ffplay for othe
 --quiet         Disable all audible alerts
 --config PATH   Use a custom config file (default: ~/.claude/cache-countdown.json)
 --init-config   Generate a starter config file and exit
+--context 500   Estimated context size in K tokens. Shows cost at risk per cache miss.
+--cold-ttl 600  Seconds to keep showing COLD sessions before auto-hiding (default: 600 = 10min)
 ```
 
 The default TTL is 295 seconds (4:55) rather than 300 (5:00). The timer starts from when we detect the stop event, not from the last API call. The 5-second buffer means you'll never see "0:01" and think you have time when the cache has already expired.
