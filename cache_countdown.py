@@ -563,6 +563,12 @@ def main():
             remaining = compute_remaining(s, args.ttl)
             stopped = s.get("stopped")
 
+            # If the session claims to be active but the process is gone (pid=0
+            # means PID discovery failed), treat it as stopped. Without this,
+            # sessions with no PID stay "HOT" forever after the process exits.
+            if stopped is False and pid <= 0 and remaining <= 0:
+                stopped = True
+
             # Three states:
             # stopped=True  -> countdown (cache is draining)
             # stopped=False -> HOT (agent is working)
