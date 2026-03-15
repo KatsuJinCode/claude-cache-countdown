@@ -68,6 +68,6 @@ fi
 
 # Write timer file
 printf '{"timestamp":"%s","session_id":"%s","project":"%s","host_pid":%d,"stopped":true,"cwd":"%s"}' \
-    "$TIMESTAMP" "$SESSION_ID" "$PROJECT" "$HOST_PID" "${CWD:-}" > "$TIMER_FILE"
+    "$TIMESTAMP" "$SESSION_ID" "$PROJECT" "$HOST_PID" "${CWD_JSON:-}" > "$TIMER_FILE"
 
 exit 0
