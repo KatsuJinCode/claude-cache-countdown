@@ -72,8 +72,6 @@ def init_config(path: Path = None):
     p = path or CONFIG_PATH
     config = {
         "_comment": "Cache Countdown configuration. See --help for CLI overrides.",
-        "context": 0,
-        "_context_comment": "Estimated context size in K tokens (e.g. 500). Shows cost at risk. 0 = disabled.",
         "cold_ttl": 600,
         "_cold_ttl_comment": "Seconds to keep showing COLD sessions before auto-hiding (default: 600 = 10min)",
         "alerts": [
