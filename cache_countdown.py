@@ -40,6 +40,58 @@ from datetime import datetime, timezone
 # State directory where Claude Code hooks write timer files
 STATE_DIR = Path.home() / ".claude" / "state"
 
+# Default config file location
+CONFIG_PATH = Path.home() / ".claude" / "cache-countdown.json"
+
+# Default alert configuration
+DEFAULT_ALERTS = [
+    {"at": "stop", "type": "bell", "count": 1, "label": "cache draining"},
+    {"at": 60,     "type": "bell", "count": 3, "label": "~1 min left"},
+]
+
+
+# ---------------------------------------------------------------------------
+# Config file
+# ---------------------------------------------------------------------------
+
+def load_config(path: Path = None) -> dict:
+    """Load config from JSON file, falling back to defaults."""
+    p = path or CONFIG_PATH
+    if p.is_file():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+def init_config(path: Path = None):
+    """Write a starter config file with defaults and comments."""
+    p = path or CONFIG_PATH
+    config = {
+        "_comment": "Cache Countdown configuration. See --help for CLI overrides.",
+        "alerts": [
+            {
+                "_comment": "Alert when agent stops. type: bell or sound",
+                "at": "stop",
+                "type": "bell",
+                "count": 1,
+                "label": "cache draining"
+            },
+            {
+                "_comment": "Urgent alert at 60 seconds remaining",
+                "at": 60,
+                "type": "bell",
+                "count": 3,
+                "label": "~1 min left"
+            }
+        ]
+    }
+    p.write_text(json.dumps(config, indent=2), encoding="utf-8")
+    print(f"Config written to: {p}")
+    print("Edit this file to customize alerts. Example with sound files:")
+    print('  {"at": 60, "type": "sound", "sound": "C:/path/to/alarm.wav", "label": "~1 min left"}')
+
 
 # ---------------------------------------------------------------------------
 # Data layer (platform-agnostic)
