@@ -372,9 +372,20 @@ def main():
     parser.add_argument("--display", default="auto",
                         choices=["auto", "stdout", "ansi", "tmux", "windows"],
                         help="Display backend (default: auto-detect)")
+    parser.add_argument("--alert-sound", default=None,
+                        help="Sound file to play when agent stops (default: terminal bell)")
+    parser.add_argument("--urgent-sound", default=None,
+                        help="Sound file for urgent alert at ~1min remaining (default: triple bell)")
+    parser.add_argument("--quiet", action="store_true",
+                        help="Disable all audible alerts")
     args = parser.parse_args()
 
     display = get_display(args.display)
+    alerts = AlertManager(
+        alert_sound=args.alert_sound,
+        urgent_sound=args.urgent_sound,
+        quiet=args.quiet,
+    )
 
     print(f"Cache Countdown started (TTL={args.ttl}s, display={args.display})")
     print(f"Watching: {STATE_DIR / 'cache-timer-*.json'}")
