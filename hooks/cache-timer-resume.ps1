@@ -41,6 +41,9 @@ try {
             $ht["project"] = "unknown"
         }
     }
+    if ($data.cwd) {
+        $ht["cwd"] = $data.cwd
+    }
 
     # WRITE IMMEDIATELY before PID walk, which can cold-start WMI and timeout
     $ht["stopped"] = $false
