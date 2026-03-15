@@ -745,6 +745,7 @@ def main():
             if pid > 0 and not is_process_alive(pid):
                 if sid in known:
                     known.discard(sid)
+                    cost_cache.pop(sid, None)
                     try:
                         s["file"].unlink()
                     except OSError:
