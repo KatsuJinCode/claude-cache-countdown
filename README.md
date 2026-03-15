@@ -20,6 +20,8 @@ We couldn't find anything else that does this. Prompt caching is well-documented
 ## What it does
 
 - Shows a live countdown when your agent stops and the cache is draining
+- **Audible alerts**: bell on agent stop, urgent alert at ~1 minute remaining
+- Customizable alert thresholds and sound files via config
 - Disappears when you send a new message (cache is refreshing again)
 - Tracks multiple Claude Code sessions simultaneously
 - Cleans up automatically when sessions end
