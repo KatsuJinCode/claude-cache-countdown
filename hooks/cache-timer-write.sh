@@ -21,6 +21,8 @@ fi
 
 CWD=$(echo "$INPUT" | grep -o '"cwd":"[^"]*"' | head -1 | cut -d'"' -f4)
 PROJECT=$(basename "${CWD:-unknown}" 2>/dev/null || echo "unknown")
+# Escape backslashes for JSON output (Windows paths via Git Bash/MSYS)
+CWD_JSON=$(echo "$CWD" | sed 's/\\/\\\\/g')
 
 # State directory
 STATE_DIR="$HOME/.claude/state"
