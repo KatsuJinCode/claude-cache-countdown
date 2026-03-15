@@ -142,6 +142,76 @@ While the agent is working, every API call resets the cache. The TTL is always f
 | **stdout** | `--display stdout` | Prints countdown to stdout. Pipe into other tools. |
 | **auto** | (default) | Windows Terminal on Windows, tmux if `$TMUX` is set, ANSI otherwise. |
 
+## Alerts
+
+When the ticker starts, it shows what alerts are configured:
+
+```
+Cache Countdown started (TTL=295s, display=auto)
+Watching: ~/.claude/state/cache-timer-*.json
+Alerts:
+  1x bell on agent stop (cache draining)
+  3x bell at 60s remaining (~1 min left)
+  (defaults; run --init-config to customize)
+```
+
+Default alerts:
+- **On agent stop**: single terminal bell, letting you know the cache is now draining
+- **At ~1 minute remaining**: triple bell, urgent warning
+
+Use `--quiet` to disable alerts. The ticker will tell you how to re-enable them.
+
+### Custom alerts
+
+Generate a config file:
+
+```bash
+python cache_countdown.py --init-config
+```
+
+This creates `~/.claude/cache-countdown.json`:
+
+```json
+{
+  "alerts": [
+    {
+      "at": "stop",
+      "type": "bell",
+      "count": 1,
+      "label": "cache draining"
+    },
+    {
+      "at": 60,
+      "type": "bell",
+      "count": 3,
+      "label": "~1 min left"
+    }
+  ]
+}
+```
+
+Each alert has:
+- `at`: when to fire. `"stop"` for when the agent stops, or a number (seconds remaining)
+- `type`: `"bell"` (terminal bell) or `"sound"` (play a file)
+- `count`: how many bells (for `"bell"` type)
+- `sound`: path to a sound file (for `"sound"` type)
+- `label`: text shown in the terminal when the alert fires
+
+Example with custom sounds and multiple thresholds:
+
+```json
+{
+  "alerts": [
+    {"at": "stop", "type": "sound", "sound": "C:/sounds/ding.wav", "label": "cache draining"},
+    {"at": 120, "type": "bell", "count": 1, "label": "2 min warning"},
+    {"at": 60, "type": "sound", "sound": "C:/sounds/alarm.wav", "label": "1 min left"},
+    {"at": 30, "type": "bell", "count": 5, "label": "last chance"}
+  ]
+}
+```
+
+Sound playback is cross-platform: Windows (SoundPlayer/.wav, mpv/ffplay for other formats), macOS (afplay), Linux (paplay, aplay, ffplay).
+
 ## Options
 
 ```
@@ -150,6 +220,9 @@ While the agent is working, every API call resets the cache. The TTL is always f
 --interval 1    Update frequency in seconds (default: 1)
 --once          Run once and exit (for testing or scripting)
 --display X     Choose display backend (auto, windows, ansi, tmux, stdout)
+--quiet         Disable all audible alerts
+--config PATH   Use a custom config file (default: ~/.claude/cache-countdown.json)
+--init-config   Generate a starter config file and exit
 ```
 
 The default TTL is 295 seconds (4:55) rather than 300 (5:00). The timer starts from when we detect the stop event, not from the last API call. The 5-second buffer means you'll never see "0:01" and think you have time when the cache has already expired.
