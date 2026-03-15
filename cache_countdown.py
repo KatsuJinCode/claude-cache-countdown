@@ -247,7 +247,7 @@ def _parse_transcript_tokens(session_id: str, cwd: str) -> tuple[int, bool]:
         with open(transcript, "rb") as f:
             f.seek(0, 2)
             size = f.tell()
-            f.seek(max(0, size - 4096))
+            f.seek(max(0, size - 262144))
             chunk = f.read().decode("utf-8", errors="replace")
     except OSError:
         return 0, False
