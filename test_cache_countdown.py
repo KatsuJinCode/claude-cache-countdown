@@ -263,6 +263,7 @@ test("exceeds_200k flag forces premium", cache_countdown.estimate_cost(100_000, 
 print("\n=== _cwd_to_project_slug ===")
 test("windows path slug", cache_countdown._cwd_to_project_slug(
     "C:\\Users\\jpswi\\projects\\myapp") == "C--Users-jpswi-projects-myapp")
+# Verify against known real slug
 test("unix path slug", cache_countdown._cwd_to_project_slug(
     "/home/user/projects/myapp") == "home-user-projects-myapp")
 
