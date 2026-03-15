@@ -228,36 +228,11 @@ def _cwd_to_project_slug(cwd: str) -> str:
     return slug
 
 
-def _read_last_lines(filepath: Path, max_lines: int = 20):
-    """Yield lines from the end of a file, one at a time, up to max_lines."""
-    try:
-        with open(filepath, "rb") as f:
-            f.seek(0, 2)
-            pos = f.tell()
-            lines_found = 0
-            buf = b""
-            while pos > 0 and lines_found < max_lines:
-                read_size = min(pos, 4096)
-                pos -= read_size
-                f.seek(pos)
-                buf = f.read(read_size) + buf
-                while b"\n" in buf and lines_found < max_lines:
-                    buf, _, line = buf.rpartition(b"\n")
-                    if line.strip():
-                        lines_found += 1
-                        yield line.decode("utf-8", errors="replace")
-            # Last remaining chunk (first line of file)
-            if buf.strip() and lines_found < max_lines:
-                yield buf.decode("utf-8", errors="replace")
-    except OSError:
-        return
-
-
 def _parse_transcript_tokens(session_id: str, cwd: str) -> tuple[int, bool]:
-    """Parse the transcript for token usage, reading from the end.
+    """Parse the transcript for token usage.
 
     Derives the exact transcript path from cwd + session_id.
-    Reads one line at a time from the end until it finds cache token data.
+    Reads last 4KB, walks lines from end until it finds cache token data.
 
     Returns (total_input_tokens, exceeds_200k).
     """
@@ -268,7 +243,16 @@ def _parse_transcript_tokens(session_id: str, cwd: str) -> tuple[int, bool]:
     if not transcript.is_file():
         return 0, False
 
-    for line in _read_last_lines(transcript):
+    try:
+        with open(transcript, "rb") as f:
+            f.seek(0, 2)
+            size = f.tell()
+            f.seek(max(0, size - 4096))
+            chunk = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        return 0, False
+
+    for line in reversed(chunk.splitlines()):
         if "cache_read_input_tokens" not in line:
             continue
         try:
