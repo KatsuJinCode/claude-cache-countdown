@@ -139,6 +139,7 @@ def read_cache_timers() -> list[dict]:
                 "session_id": data.get("session_id", ""),
                 "project": data.get("project", "?"),
                 "host_pid": data.get("host_pid", 0),
+                "cwd": data.get("cwd", ""),
                 "timestamp": ts,
                 "stopped": stopped,
                 "file": f,
