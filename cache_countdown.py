@@ -637,6 +637,22 @@ def main():
 
             alerts.check(sid, s["project"], stopped, remaining, was_known)
 
+        # Remove stale COLD sessions (expired longer than cold_ttl)
+        # and clean up their timer files
+        active_data = []
+        for s in sessions_data:
+            if s["remaining"] < -cold_ttl:
+                known.discard(s["session_id"])
+                # Find and remove the timer file
+                timer_file = STATE_DIR / f"cache-timer-{s['session_id']}.json"
+                try:
+                    timer_file.unlink()
+                except OSError:
+                    pass
+            else:
+                active_data.append(s)
+        sessions_data = active_data
+
         # Sort by remaining time ascending (most urgent first)
         sessions_data.sort(key=lambda x: x["remaining"])
 
