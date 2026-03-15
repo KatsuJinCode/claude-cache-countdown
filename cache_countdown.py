@@ -236,7 +236,10 @@ class AlertManager:
                 threading.Thread(target=play_sound, args=(self._urgent_sound,), daemon=True).start()
             else:
                 bell(3, spacing=0.2)
-            print(f"  \U0001f6a8 {project}: ~{int(remaining)}s remaining!")
+            try:
+                print(f"  \U0001f6a8 {project}: ~{int(remaining)}s remaining!")
+            except UnicodeEncodeError:
+                print(f"  [!!!] {project}: ~{int(remaining)}s remaining!")
 
 
 # ---------------------------------------------------------------------------
