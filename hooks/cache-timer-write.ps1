@@ -55,59 +55,6 @@ $timerData["session_id"] = $sid
 
 $timerData | ConvertTo-Json -Compress | Set-Content $cacheTimerPath -Force
 
-# Best-effort: read context size from statusline data or transcript
-# Tier 1: statusline data (written by statusline wrapper)
-# Tier 2: transcript file (last entry with cache_read_input_tokens)
-$contextTokens = 0
-$exceeds200k = $false
-
-$slData = Join-Path $stateDir "statusline-data-$sid.json"
-if (Test-Path $slData) {
-    try {
-        $sl = Get-Content $slData -Raw | ConvertFrom-Json
-        $usage = $sl.context_window.current_usage
-        if ($usage) {
-            $contextTokens = [int]($usage.input_tokens ?? 0) + [int]($usage.cache_creation_input_tokens ?? 0) + [int]($usage.cache_read_input_tokens ?? 0)
-            $exceeds200k = [bool]($sl.exceeds_200k_tokens ?? $false)
-        }
-    } catch {}
-}
-
-if ($contextTokens -eq 0) {
-    # Tier 2: parse transcript. Derive path from cwd + session_id.
-    try {
-        $cwd = $data.cwd
-        if ($cwd) {
-            $projectSlug = ($cwd -replace '[/\\]', '-' -replace ':', '').TrimStart('-')
-            $transcriptDir = Join-Path $env:USERPROFILE ".claude\projects\$projectSlug"
-            $transcriptPath = Join-Path $transcriptDir "$sid.jsonl"
-            if (Test-Path $transcriptPath) {
-                # Read last 20 lines, find last one with cache_read_input_tokens
-                $lines = Get-Content $transcriptPath -Tail 20 -ErrorAction SilentlyContinue
-                for ($i = $lines.Count - 1; $i -ge 0; $i--) {
-                    if ($lines[$i] -match 'cache_read_input_tokens') {
-                        try {
-                            $entry = $lines[$i] | ConvertFrom-Json
-                            $u = $entry.message.usage
-                            if ($u) {
-                                $contextTokens = [int]($u.input_tokens ?? 0) + [int]($u.cache_creation_input_tokens ?? 0) + [int]($u.cache_read_input_tokens ?? 0)
-                                if ($u.service_tier -eq "standard") { $exceeds200k = $false } else { $exceeds200k = ($contextTokens -gt 200000) }
-                                break
-                            }
-                        } catch {}
-                    }
-                }
-            }
-        }
-    } catch {}
-}
-
-if ($contextTokens -gt 0) {
-    $timerData["context_tokens"] = $contextTokens
-    $timerData["exceeds_200k"] = $exceeds200k
-    $timerData | ConvertTo-Json -Compress | Set-Content $cacheTimerPath -Force
-}
-
 # Best-effort: discover host PID if not already known (child of WindowsTerminal)
 # This is expensive on first call (WMI cold start) and optional - only used for
 # Windows Terminal tab title display. If it times out, the timer file is already written.

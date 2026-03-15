@@ -261,12 +261,6 @@ test("0 tokens returns empty", cache_countdown.estimate_cost(0) == "")
 test("exceeds_200k flag forces premium", cache_countdown.estimate_cost(100_000, exceeds_200k=True) == "$1.15")
 
 print("\n=== read_session_context ===")
-# Tier 0: context_tokens embedded in timer data
-_timer_with_ctx = {"context_tokens": 300000, "exceeds_200k": True}
-_ctx_tokens, _ctx_exceeds = cache_countdown.read_session_context("no-such-id", _timer_with_ctx)
-test("tier 0: reads from timer data", _ctx_tokens == 300000)
-test("tier 0: reads exceeds flag", _ctx_exceeds is True)
-
 # Tier 1: statusline data file
 _sl_path = TEST_DIR / "statusline-data-ctx-test.json"
 _sl_data = {

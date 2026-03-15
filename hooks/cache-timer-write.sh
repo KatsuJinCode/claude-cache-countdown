@@ -64,49 +64,8 @@ elif [ -d "/proc/$$" ]; then
     done
 fi
 
-# Write timer file immediately (before context parsing which may be slow)
+# Write timer file
 printf '{"timestamp":"%s","session_id":"%s","project":"%s","host_pid":%d,"stopped":true}' \
     "$TIMESTAMP" "$SESSION_ID" "$PROJECT" "$HOST_PID" > "$TIMER_FILE"
-
-# Best-effort: read context size for cost display
-# Tier 1: statusline data file
-# Tier 2: transcript file (last entry with token usage)
-CONTEXT_TOKENS=0
-EXCEEDS_200K=false
-
-SL_FILE="$STATE_DIR/statusline-data-${SESSION_ID}.json"
-if [ -f "$SL_FILE" ]; then
-    # Extract token counts from statusline data
-    _input=$(grep -o '"input_tokens":[0-9]*' "$SL_FILE" 2>/dev/null | tail -1 | grep -o '[0-9]*' || echo 0)
-    _creation=$(grep -o '"cache_creation_input_tokens":[0-9]*' "$SL_FILE" 2>/dev/null | tail -1 | grep -o '[0-9]*' || echo 0)
-    _read=$(grep -o '"cache_read_input_tokens":[0-9]*' "$SL_FILE" 2>/dev/null | tail -1 | grep -o '[0-9]*' || echo 0)
-    CONTEXT_TOKENS=$(( ${_input:-0} + ${_creation:-0} + ${_read:-0} ))
-    if grep -q '"exceeds_200k_tokens":true' "$SL_FILE" 2>/dev/null; then
-        EXCEEDS_200K=true
-    fi
-fi
-
-if [ "$CONTEXT_TOKENS" -eq 0 ] && [ -n "$CWD" ]; then
-    # Tier 2: parse transcript
-    PROJECT_SLUG=$(echo "$CWD" | sed 's|[/\\]|-|g; s|:||g; s|^-||')
-    TRANSCRIPT="$HOME/.claude/projects/$PROJECT_SLUG/${SESSION_ID}.jsonl"
-    if [ -f "$TRANSCRIPT" ]; then
-        _line=$(grep 'cache_read_input_tokens' "$TRANSCRIPT" 2>/dev/null | tail -1)
-        if [ -n "$_line" ]; then
-            _input=$(echo "$_line" | grep -o '"input_tokens":[0-9]*' | head -1 | grep -o '[0-9]*' || echo 0)
-            _creation=$(echo "$_line" | grep -o '"cache_creation_input_tokens":[0-9]*' | head -1 | grep -o '[0-9]*' || echo 0)
-            _read=$(echo "$_line" | grep -o '"cache_read_input_tokens":[0-9]*' | head -1 | grep -o '[0-9]*' || echo 0)
-            CONTEXT_TOKENS=$(( ${_input:-0} + ${_creation:-0} + ${_read:-0} ))
-            if [ "$CONTEXT_TOKENS" -gt 200000 ]; then
-                EXCEEDS_200K=true
-            fi
-        fi
-    fi
-fi
-
-if [ "$CONTEXT_TOKENS" -gt 0 ]; then
-    printf '{"timestamp":"%s","session_id":"%s","project":"%s","host_pid":%d,"stopped":true,"context_tokens":%d,"exceeds_200k":%s}' \
-        "$TIMESTAMP" "$SESSION_ID" "$PROJECT" "$HOST_PID" "$CONTEXT_TOKENS" "$EXCEEDS_200K" > "$TIMER_FILE"
-fi
 
 exit 0
