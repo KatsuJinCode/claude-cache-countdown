@@ -745,14 +745,15 @@ def main():
             sid = s["session_id"]
 
             if pid > 0 and not is_process_alive(pid):
-                if sid in known:
-                    known.discard(sid)
-                    cost_cache.pop(sid, None)
-                    try:
-                        s["file"].unlink()
-                    except OSError:
-                        pass
-                continue
+                # Zero the stale PID in the timer file so the hook re-walks next time
+                try:
+                    raw = json.loads(s["file"].read_text(encoding="utf-8"))
+                    raw["host_pid"] = 0
+                    s["file"].write_text(json.dumps(raw), encoding="utf-8")
+                except (json.JSONDecodeError, OSError):
+                    pass
+                pid = 0
+                s["host_pid"] = 0
 
             remaining = compute_remaining(s, args.ttl)
             stopped = s.get("stopped")
