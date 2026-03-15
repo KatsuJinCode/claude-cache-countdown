@@ -271,7 +271,7 @@ The UserPromptSubmit hook sets `stopped` to `false` when the user resumes. The S
 
 ## Adapting to your environment
 
-The tool is split into two independent pieces: **hooks** (write/delete JSON files) and **display** (read JSON files). They communicate through a simple file format. You can swap either side without touching the other.
+The tool is split into two independent pieces: **hooks** (write/update JSON files) and **ticker** (read JSON files, display, alerts, cost). They communicate through a simple file format. You can swap either side without touching the other.
 
 ### Writing your own display backend
 
