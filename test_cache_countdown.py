@@ -245,19 +245,45 @@ test("config has alerts key", "alerts" in _cfg)
 test("config has 4 default alerts", len(_cfg["alerts"]) == 4)
 _cfg_path.unlink()
 test("load_config returns {} for missing file", cache_countdown.load_config(Path("/nonexistent/path.json")) == {})
-test("config includes context field", "context" in _cfg)
 test("config includes cold_ttl field", "cold_ttl" in _cfg)
 
 print("\n=== estimate_cost ===")
 # Standard tier (<=200K): cache_read=0.50/MTok, cache_write=6.25/MTok
 # delta = (6.25 - 0.50) * tokens/1M = 5.75 * tokens/1M
-test("100K standard tier", cache_countdown.estimate_cost(100) == "$0.57")
-test("200K standard tier", cache_countdown.estimate_cost(200) == "$1.15")
+test("100K standard tier", cache_countdown.estimate_cost(100_000) == "$0.57")
+test("200K standard tier", cache_countdown.estimate_cost(200_000) == "$1.15")
 # Premium tier (>200K): cache_read=1.00/MTok, cache_write=12.50/MTok
 # delta = (12.50 - 1.00) * tokens/1M = 11.50 * tokens/1M
-test("500K premium tier", cache_countdown.estimate_cost(500) == "$5.75")
-test("900K premium tier", cache_countdown.estimate_cost(900) == "$10.35")
-test("1M premium tier", cache_countdown.estimate_cost(1000) == "$11.50")
+test("500K premium tier", cache_countdown.estimate_cost(500_000) == "$5.75")
+test("900K premium tier", cache_countdown.estimate_cost(900_000) == "$10.35")
+test("1M premium tier", cache_countdown.estimate_cost(1_000_000) == "$11.50")
+test("0 tokens returns empty", cache_countdown.estimate_cost(0) == "")
+test("exceeds_200k flag forces premium", cache_countdown.estimate_cost(100_000, exceeds_200k=True) == "$1.15")
+
+print("\n=== read_session_context ===")
+# Write a fake statusline data file
+_sl_path = TEST_DIR / "statusline-data-ctx-test.json"
+_sl_data = {
+    "session_id": "ctx-test",
+    "context_window": {
+        "current_usage": {
+            "input_tokens": 5,
+            "cache_creation_input_tokens": 50000,
+            "cache_read_input_tokens": 100000
+        }
+    },
+    "exceeds_200k_tokens": False
+}
+_sl_path.write_text(json.dumps(_sl_data), encoding="utf-8")
+_ctx_tokens, _ctx_exceeds = cache_countdown.read_session_context("ctx-test")
+test("reads context tokens from statusline data", _ctx_tokens == 150005)
+test("reads exceeds_200k flag", _ctx_exceeds is False)
+_sl_path.unlink()
+
+# Missing file returns (0, False)
+_ctx_tokens2, _ctx_exceeds2 = cache_countdown.read_session_context("nonexistent-session")
+test("missing statusline returns 0", _ctx_tokens2 == 0)
+test("missing statusline returns False", _ctx_exceeds2 is False)
 
 print("\n=== stale COLD cleanup ===")
 for f in TEST_DIR.glob("cache-timer-*.json"):
