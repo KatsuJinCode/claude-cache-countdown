@@ -286,11 +286,11 @@ def _parse_transcript_tokens(session_id: str, cwd: str) -> tuple[int, bool]:
     return 0, False
 
 
-def read_session_context(session_id: str) -> tuple[int, bool]:
+def read_session_context(session_id: str, cwd: str = "") -> tuple[int, bool]:
     """Read context size for a session using a two-tier fallback.
 
-    Tier 1: statusline-data-{session_id}.json (from statusline wrapper, live)
-    Tier 2: transcript file parsing (last entry with token usage)
+    Tier 1: statusline-data-{session_id}.json (from statusline wrapper)
+    Tier 2: transcript file (exact path derived from cwd, read from end)
 
     Returns (total_input_tokens, exceeds_200k).
     Falls back to (0, False) if no data is available.
@@ -312,8 +312,8 @@ def read_session_context(session_id: str) -> tuple[int, bool]:
     except (json.JSONDecodeError, OSError, TypeError):
         pass
 
-    # Tier 2: transcript parsing
-    return _parse_transcript_tokens(session_id)
+    # Tier 2: transcript parsing (exact path, read from end)
+    return _parse_transcript_tokens(session_id, cwd)
 
 
 def compute_remaining(session: dict, ttl: float) -> float:
