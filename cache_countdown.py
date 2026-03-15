@@ -405,7 +405,7 @@ class TmuxDisplay:
             return
         parts = []
         for s in sessions_data:
-            parts.append(f"{s['icon']} {s['countdown']} {s['project']}")
+            parts.append(_format_session_line(s))
         status = " | ".join(parts)
         subprocess.run(["tmux", "set-option", "-q", "status-right", status],
                        capture_output=True)
