@@ -420,10 +420,11 @@ def _safe_encode(text: str) -> str:
 
 def _format_session_line(s: dict) -> str:
     """Format a session entry for display, including cost if present."""
-    line = f"{s['icon']} {s['countdown']} | {s['project']}"
-    cost = s.get("cost")
+    cost = s.get("cost", "")
     if cost:
-        line += f" ({cost})"
+        line = f"{s['icon']} {s['countdown']} {s['project']} {cost}"
+    else:
+        line = f"{s['icon']} {s['countdown']} {s['project']}"
     return _safe_encode(line)
 
 
