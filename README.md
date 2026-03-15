@@ -224,27 +224,20 @@ Sound playback is cross-platform: Windows (SoundPlayer/.wav, mpv/ffplay for othe
 --quiet         Disable all audible alerts
 --config PATH   Use a custom config file (default: ~/.claude/cache-countdown.json)
 --init-config   Generate a starter config file and exit
---context 500   Estimated context size in K tokens. Shows cost at risk per cache miss.
 --cold-ttl 600  Seconds to keep showing COLD sessions before auto-hiding (default: 600 = 10min)
 ```
 
 ### Cost at risk
 
-Use `--context` to see how much money is at stake while the cache is draining:
+The ticker automatically shows how much money is at stake if the cache expires. It reads the actual context size from your session using a three-tier fallback:
 
-```bash
-python cache_countdown.py --context 500
-```
+1. **Statusline data** (best): if you have a statusline wrapper that writes `~/.claude/state/statusline-data-{session_id}.json`, the ticker reads live token counts from it
+2. **Transcript parsing**: the stop hook reads the last few lines of the session transcript (`~/.claude/projects/.../session_id.jsonl`) to extract token usage
+3. **Graceful fallback**: if neither is available, cost is simply not shown
 
-This shows the cost delta (cache miss minus cache hit) in the tab title and startup banner:
+The cost appears next to the countdown: `🔴 0:45 $5.75 myapp`
 
-```
-Context: ~500K tokens ($5.75 at risk per cache miss)
-```
-
-The cost appears next to the countdown while draining: `🔴 0:45 | myapp ($5.75)`
-
-You can also set this in the config file: `"context": 500`
+This is the delta between a cache hit and a cache miss (the extra money you pay because you were late). At 500K tokens on the premium tier, a cache hit costs $0.50 but a miss forces a $6.25 re-write, so you're risking $5.75.
 
 ### Stale session cleanup
 
