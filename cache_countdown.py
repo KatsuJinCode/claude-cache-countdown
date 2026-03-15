@@ -385,7 +385,7 @@ class AnsiTitleDisplay:
             return
         # Show the most urgent session in the title
         s = sessions_data[0]
-        title = f"{s['icon']} {s['countdown']} | {s['project']}"
+        title = _format_session_line(s)
         sys.stdout.write(f"\033]0;{title}\007")
         sys.stdout.flush()
 
