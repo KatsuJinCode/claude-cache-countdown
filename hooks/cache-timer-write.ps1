@@ -42,6 +42,7 @@ function Write-Failure {
 
 function Write-Debug {
     param([string]$Message)
+    if (-not $env:CACHE_TIMER_DEBUG) { return }
     $debugLog = Join-Path $stateDir "cache-timer-debug.log"
     try { Add-Content $debugLog "$(Get-Date -Format 'HH:mm:ss') [STOP] $Message" } catch {}
 }
