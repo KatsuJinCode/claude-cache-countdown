@@ -788,13 +788,15 @@ def main():
                 "countdown": countdown,
                 "icon": icon,
             }
-            # Cost: recompute each time session stops (context grew during turn).
-            # Keep showing while HOT so user always sees context cost.
+            # Cost: compute once on stop, keep showing while HOT.
+            # Clear cache on resume so next stop recomputes with new context.
             if stopped is True:
-                # Force recompute on each new stop event
-                ctx_tokens, exceeds_200k = read_session_context(sid, s.get("cwd", ""))
-                cost_cache[sid] = estimate_cost(ctx_tokens, exceeds_200k)
-            # Show cost in all states (HOT keeps the last computed value)
+                if sid not in cost_cache:
+                    ctx_tokens, exceeds_200k = read_session_context(sid, s.get("cwd", ""))
+                    cost_cache[sid] = estimate_cost(ctx_tokens, exceeds_200k)
+            elif stopped is False and was_known:
+                # Just resumed: clear so next stop recomputes
+                cost_cache.pop(sid, None)
             if cost_cache.get(sid):
                 entry["cost"] = cost_cache[sid]
             sessions_data.append(entry)
