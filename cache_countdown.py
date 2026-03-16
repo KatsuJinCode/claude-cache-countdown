@@ -773,8 +773,8 @@ def main():
                 icon = get_icon(remaining, args.ttl)
                 countdown = format_countdown(remaining)
             elif stopped is False:
-                icon = "\U0001f525"  # fire - HOT
-                countdown = "HOT"
+                icon = "\U0001f525"  # fire
+                countdown = ""
             else:
                 icon = "\u2753"  # question mark - unknown
                 countdown = "..."
