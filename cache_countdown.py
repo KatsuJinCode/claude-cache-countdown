@@ -694,7 +694,8 @@ def main():
     print("Press Ctrl+C to stop.\n")
 
     known = set()
-    cost_cache: dict[str, str] = {}  # session_id -> cost string, computed once on stop
+    cost_cache: dict[str, str] = {}  # session_id -> cost string
+    cost_stale: set = set()  # sessions that need cost recompute on next stop
 
     def shutdown(*_):
         display.restore()
