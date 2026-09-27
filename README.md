@@ -1,8 +1,17 @@
 # Claude Cache Countdown
 
+> [!WARNING]
+> **Project Status: Abandoned / Unmaintained (Superseded by Statusline Integration)**
+>
+> This project was an early, naive approach created when we assumed an external background process (with file-based Stop/UserPromptSubmit hooks, PID tree scanning, and external timers) was needed to monitor prompt cache expiry.
+>
+> In practice, Claude Code's native **statusline** (`statusLine` in `~/.claude/settings.json`) is a vastly superior solution: each session monitors its own cache state and token usage in real time, in-process, without needing separate daemon processes, timer files in `~/.claude/state`, or cross-terminal hooks. Furthermore, approaching cache expiration is now typically handled by automated keep-alive hooks (injecting an auto-prompt / outboarding turn near the 1-hour mark to keep the cache warm) rather than manual countdown watching.
+>
+> This repository is kept public for archival purposes and for anyone who wishes to fork or adapt the multi-tab terminal title / tmux ticker mechanisms.
+
 Live prompt cache TTL countdown for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sessions.
 
-With Claude Opus 4.6's **1 million token context window**, prompt caching has never been more important. Anthropic caches your conversation context server-side for 5 minutes. Cache hits cost 90% less. But when your agent stops, that cache is silently draining, and the stakes are real:
+With Claude Opus 4.6's **1 million token context window**, prompt caching has never been more important. Anthropic caches your conversation context server-side (1 hour by default for Claude Pro/Max subscriptions on main conversations; 5 minutes for API keys, cloud providers, and subagents). Cache hits cost 90% less. But when your agent stops, that cache is silently draining, and the stakes are real:
 
 **At 500K tokens (a medium session in the premium pricing tier):**
 - Cache hit: **$0.50**
@@ -216,8 +225,8 @@ Sound playback is cross-platform: Windows (SoundPlayer/.wav, mpv/ffplay for othe
 ## Options
 
 ```
---ttl 295       Cache TTL in seconds (default: 295, 5s safety margin under the 5min cache)
---ttl 3600      Use if your API calls use the 1-hour cache ("ttl": "1h")
+--ttl 295       Cache TTL in seconds (default: 295, 5s safety margin under 5-minute cache for API keys / subagents)
+--ttl 3595      Use for 1-hour cache (default for Claude Pro/Max subscriptions on main conversation)
 --interval 1    Update frequency in seconds (default: 1)
 --once          Run once and exit (for testing or scripting)
 --display X     Choose display backend (auto, windows, ansi, tmux, stdout)
@@ -319,10 +328,32 @@ echo '{"timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'","session_id":"manual",
 
 ## Prompt caching reference
 
-| TTL | Write cost | Read cost | How to use |
-|-----|-----------|-----------|------------|
-| 5 minutes (default) | 1.25x base | 0.1x base | Claude Code uses this automatically |
-| 1 hour (opt-in) | 2x base | 0.1x base | Requires `"ttl": "1h"` in API call |
+Claude Code manages prompt caching TTL automatically per request across two distinct buckets:
+- **Main conversation**: interactive turns, non-interactive `-p` runs, and Agent SDK turns.
+- **Everything else**: subagents, workflows, teammates, forks, compaction, and session titles.
+
+### Claude Code Default TTL by Billing & Request Bucket
+
+| Request bucket | Claude subscription (Pro/Max) within plan usage | API key, usage credits, or cloud providers (Bedrock, GCP, Foundry) |
+|---|---|---|
+| **Main conversation** | **1 hour** | **5 minutes** |
+| **Everything else** (subagents, workflows, etc.) | **5 minutes** | **5 minutes** |
+
+> **Plan overage note**: When a Claude subscription exceeds plan limits and draws on usage credits, Claude Code drops the main conversation to the 5-minute TTL.
+
+### Configuring TTL in Claude Code
+
+You can set TTL (`5m` or `1h`) via Claude Code settings or environment variables:
+- **Main conversation**: `"promptCacheTtl": "1h"` in `~/.claude/settings.json`, or `CLAUDE_CODE_PROMPT_CACHE_TTL=1h`
+- **Everything else**: `"subagentPromptCacheTtl": "1h"` in `~/.claude/settings.json`, or `CLAUDE_CODE_SUBAGENT_PROMPT_CACHE_TTL=1h`
+- **Global overrides**: `ENABLE_PROMPT_CACHING_1H=1` (forces 1h across all buckets) or `FORCE_PROMPT_CACHING_5M=1` (forces 5m across all buckets)
+
+### Pricing & Cache Multipliers
+
+| Cache TTL | Cache Write Cost | Cache Read Cost | Notes |
+|---|---|---|---|
+| **5 minutes** | 1.25x base input | 0.1x base input (90% savings) | Standard default for API keys & subagents |
+| **1 hour** | 2.00x base input | 0.1x base input (90% savings) | Default for Claude subscription main turns |
 
 ### Opus 4.6 pricing tiers
 
